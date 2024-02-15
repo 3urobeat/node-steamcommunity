@@ -445,6 +445,7 @@ require('./components/login.js');
 require('./components/http.js');
 require('./components/chat.js');
 require('./components/profile.js');
+require('./components/reviews.js');
 require('./components/market.js');
 require('./components/groups.js');
 require('./components/users.js');
@@ -459,6 +460,7 @@ require('./classes/CMarketItem.js');
 require('./classes/CMarketSearchResult.js');
 require('./classes/CSteamDiscussion.js');
 require('./classes/CSteamGroup.js');
+require('./classes/CSteamReviews.js');
 require('./classes/CSteamSharedFile.js');
 require('./classes/CSteamUser.js');
 
