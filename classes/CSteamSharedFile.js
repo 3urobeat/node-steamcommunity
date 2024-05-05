@@ -44,6 +44,29 @@ SteamCommunity.prototype.getSteamSharedFile = function(sharedFileId, callback) {
 			// Load output into cheerio to make parsing easier
 			let $ = Cheerio.load(body);
 
+
+			// Determine type by looking at the second breadcrumb. Find the first separator as it has a unique name and go to the next element which holds our value of interest
+			let breadcrumb = $(".breadcrumbs > .breadcrumb_separator").next().get(0) || $(".breadcrumbs").get(0).children[1]; // Some artworks only have one breadcrumb like "username's Artwork" so let's check that as a backup
+
+			if (breadcrumb) { // If neither could be found then leave type at null
+				if (breadcrumb.children[0].data.includes("Screenshot")) {
+					sharedfile.type = ESharedFileType.Screenshot;
+				}
+
+				if (breadcrumb.children[0].data.includes("Artwork")) {
+					sharedfile.type = ESharedFileType.Artwork;
+				}
+
+				if (breadcrumb.children[0].data.includes("Guide")) {
+					sharedfile.type = ESharedFileType.Guide;
+				}
+
+				if (breadcrumb.children[0].data.includes("Workshop")) {
+					sharedfile.type = ESharedFileType.Workshop;
+				}
+			}
+
+
 			// Dynamically map detailsStatsContainerLeft to detailsStatsContainerRight in an object to make readout easier. It holds size, post date and resolution.
 			let detailsStatsObj = {};
 			let detailsLeft     = $(".detailsStatsContainerLeft").children();
@@ -56,6 +79,7 @@ SteamCommunity.prototype.getSteamSharedFile = function(sharedFileId, callback) {
 
 				detailsStatsObj[detailsLeft[e].children[0].data.trim()] = detailsRight[e].children[0].data;
 			});
+
 
 			// Dynamically map stats_table descriptions to values. This holds Unique Visitors and Current Favorites
 			let statsTableObj = {};
@@ -99,8 +123,14 @@ SteamCommunity.prototype.getSteamSharedFile = function(sharedFileId, callback) {
 			}
 
 
-			// Find resolution if artwork or screenshot
-			sharedfile.resolution = detailsStatsObj["Size"] || null;
+			// Find resolution if artwork or screenshot. Guides don't have a resolution and workshop items display it somewhere else
+			if (sharedfile.type != ESharedFileType.Workshop) {
+				sharedfile.resolution = detailsStatsObj["Size"] || null;
+			} else {
+				let resolutionTag = $(".workshopTagsTitle:contains(\"Resolution:\")").next();
+
+				sharedfile.resolution = resolutionTag.text() || null; // Keep prop null if this workshop item does not have a resolution
+			}
 
 
 			// Find uniqueVisitorsCount. We can't use ' || null' here as Number("0") casts to false
@@ -132,24 +162,6 @@ SteamCommunity.prototype.getSteamSharedFile = function(sharedFileId, callback) {
 			// Determine if this account has already voted on this sharedfile
 			sharedfile.isUpvoted   = String($(".workshopItemControlCtn > #VoteUpBtn")[0].attribs["class"]).includes("toggled");   // Check if upvote btn class contains "toggled"
 			sharedfile.isDownvoted = String($(".workshopItemControlCtn > #VoteDownBtn")[0].attribs["class"]).includes("toggled"); // Check if downvote btn class contains "toggled"
-
-
-			// Determine type by looking at the second breadcrumb. Find the first separator as it has a unique name and go to the next element which holds our value of interest
-			let breadcrumb = $(".breadcrumbs > .breadcrumb_separator").next().get(0) || $(".breadcrumbs").get(0).children[1]; // Some artworks only have one breadcrumb like "username's Artwork" so let's check that as a backup
-
-			if (breadcrumb) { // If neither could be found then leave type at null
-				if (breadcrumb.children[0].data.includes("Screenshot")) {
-					sharedfile.type = ESharedFileType.Screenshot;
-				}
-
-				if (breadcrumb.children[0].data.includes("Artwork")) {
-					sharedfile.type = ESharedFileType.Artwork;
-				}
-
-				if (breadcrumb.children[0].data.includes("Guide")) {
-					sharedfile.type = ESharedFileType.Guide;
-				}
-			}
 
 
 			// Find owner profile link, convert to steamID64 using SteamIdResolver lib and create a SteamID object
