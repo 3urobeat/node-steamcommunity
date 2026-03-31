@@ -1,6 +1,6 @@
 module.exports = CEconItem;
 
-function CEconItem(item, description, contextID) {
+function CEconItem(item, description, contextID, assetProperties) {
 	var thing;
 	for (thing in item) {
 		if (item.hasOwnProperty(thing)) {
@@ -28,7 +28,7 @@ function CEconItem(item, description, contextID) {
 		}
 
 		for (thing in description) {
-			if (description.hasOwnProperty(thing)) {
+			if (description.hasOwnProperty(thing) && !this.hasOwnProperty(thing)) {
 				this[thing] = description[thing];
 			}
 		}
@@ -84,6 +84,11 @@ function CEconItem(item, description, contextID) {
 
 	if (this.actions === "") {
 		this.actions = [];
+	}
+
+	// Assign asset_properties if provided
+	if (assetProperties) {
+		this.asset_properties = assetProperties;
 	}
 
 	// One wouldn't think that we need this if statement, but apparently v8 has a weird bug/quirk where deleting a
