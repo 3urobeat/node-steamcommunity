@@ -1,6 +1,5 @@
 const Cheerio = require('cheerio');
 const SteamID = require('steamid');
-const StdLib = require('@doctormckay/stdlib');
 
 const SteamCommunity = require('../index.js');
 const Helpers = require('../components/helpers.js');
@@ -32,20 +31,18 @@ SteamCommunity.prototype.getSteamDiscussion = function(url, callback) {
 	};
 
 	// Get DOM of discussion
-	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
-		let result = await this.httpRequest({
-			method: 'GET',
-			url: url + '?l=en',
-			source: 'steamcommunity'
-		});
-
+	this.httpRequestGet(url, (err, res, body) => {
+		if (err) {
+			callback(err);
+			return;
+		}
 
 		try {
 
 			/* --------------------- Preprocess output --------------------- */
 
 			// Load output into cheerio to make parsing easier
-			let $ = Cheerio.load(result.textBody);
+			let $ = Cheerio.load(body);
 
 			// Get breadcrumbs once. Depending on the type of discussion, it either uses "forum" or "group" breadcrumbs
 			let breadcrumbs = $('.forum_breadcrumbs').children();
@@ -54,7 +51,7 @@ SteamCommunity.prototype.getSteamDiscussion = function(url, callback) {
 
 			// Steam redirects us to the forum page if the discussion does not exist which we can detect by missing breadcrumbs
 			if (!breadcrumbs[0]) {
-				reject(new Error('Discussion not found'));
+				callback(new Error('Discussion not found'), null);
 				return;
 			}
 
@@ -135,23 +132,23 @@ SteamCommunity.prototype.getSteamDiscussion = function(url, callback) {
 
 				Helpers.resolveVanityURL(authorLink, (err, data) => { // This request takes <1 sec
 					if (err) {
-						reject(err);
+						callback(err);
 						return;
 					}
 
 					discussion.author = new SteamID(data.steamID);
 
 					// Resolve when ID was resolved as otherwise owner will always be null
-					resolve(new CSteamDiscussion(this, discussion));
+					callback(null, new CSteamDiscussion(this, discussion));
 				});
 			} else {
-				resolve(new CSteamDiscussion(this, discussion));
+				callback(null, new CSteamDiscussion(this, discussion));
 			}
 
 		} catch (err) {
-			reject(err);
+			callback(err, null);
 		}
-	});
+	}, 'steamcommunity');
 };
 
 
