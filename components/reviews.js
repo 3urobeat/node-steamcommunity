@@ -1,5 +1,4 @@
 const SteamID = require('steamid');
-const StdLib  = require('@doctormckay/stdlib');
 
 const SteamCommunity = require('../index.js');
 const Helpers = require('../components/helpers.js');
@@ -18,26 +17,33 @@ SteamCommunity.prototype.postReviewComment = function(userID, appID, message, ca
 		userID = new SteamID(userID);
 	}
 
-	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
-		let res = await this.httpRequest({
-			method: 'POST',
-			url: `https://steamcommunity.com/comment/Recommendation/post/${userID.getSteamID64()}/${appID}/`,
-			form: {
-				comment: message,
-				count: 10,
-				sessionid: this.getSessionID()
-			},
-			source: 'steamcommunity',
-			checkCommunityError: true
-		});
-
-		if (res.jsonBody && res.jsonBody.success != SteamCommunity.EResult.OK) {
-			reject(new Error(res.jsonBody.error));
+	this.httpRequestPost({
+		"uri": `https://steamcommunity.com/comment/Recommendation/post/${userID.getSteamID64()}/${appID}/`,
+		"form": {
+			"comment": message,
+			"count": 10,
+			"sessionid": this.getSessionID(),
+			"json": 1
+		},
+		"json": true
+	}, function(err, response, body) {
+		if (!callback) {
 			return;
 		}
 
-		resolve();
-	});
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		if (body.success) {
+			callback(null);
+		} else {
+			callback(new Error(body.error));
+		}
+
+		callback(null);
+	}, "steamcommunity");
 };
 
 /**
@@ -53,26 +59,32 @@ SteamCommunity.prototype.deleteReviewComment = function(userID, appID, cid, call
 		userID = new SteamID(userID);
 	}
 
-	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
-		let res = await this.httpRequest({
-			method: 'POST',
-			url: `https://steamcommunity.com/comment/Recommendation/delete/${userID.getSteamID64()}/${appID}/`,
-			form: {
-				gidcomment: cid,
-				count: 10,
-				sessionid: this.getSessionID()
-			},
-			source: 'steamcommunity',
-			checkCommunityError: true
-		});
-
-		if (res.jsonBody && res.jsonBody.success != SteamCommunity.EResult.OK) {
-			reject(new Error(res.jsonBody.error));
+	this.httpRequestPost({
+		"uri": `https://steamcommunity.com/comment/Recommendation/delete/${userID.getSteamID64()}/${appID}/`,
+		"form": {
+			"gidcomment": cid,
+			"count": 10,
+			"sessionid": this.getSessionID(),
+			"json": 1
+		},
+		"json": true
+	}, function(err, response, body) {
+		if (!callback) {
 			return;
 		}
 
-		resolve();
-	});
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		if (body.success && body.success != SteamCommunity.EResult.OK) {
+			callback(Helpers.eresultError(body.success));
+			return;
+		}
+
+		callback(null);
+	}, "steamcommunity");
 };
 
 /**
@@ -87,19 +99,26 @@ SteamCommunity.prototype.subscribeReviewComments = function(userID, appID, callb
 		userID = new SteamID(userID);
 	}
 
-	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
-		await this.httpRequest({
-			method: 'POST',
-			url: `https://steamcommunity.com/comment/Recommendation/subscribe/${userID.getSteamID64()}/${appID}/`,
-			form: {
-				count: 10,
-				sessionid: this.getSessionID()
-			},
-			source: 'steamcommunity'
-		});
+	this.httpRequestPost({
+		"uri": `https://steamcommunity.com/comment/Recommendation/subscribe/${userID.getSteamID64()}/${appID}/`,
+		"form": {
+			"count": 10,
+			"sessionid": this.getSessionID(),
+			"json": 1
+		},
+		"json": true
+	}, function(err, response, body) {
+		if (!callback) {
+			return;
+		}
 
-		resolve();
-	});
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		callback(null);
+	}, "steamcommunity");
 };
 
 /**
@@ -114,19 +133,26 @@ SteamCommunity.prototype.unsubscribeReviewComments = function(userID, appID, cal
 		userID = new SteamID(userID);
 	}
 
-	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
-		await this.httpRequest({
-			method: 'POST',
-			url: `https://steamcommunity.com/comment/Recommendation/unsubscribe/${userID.getSteamID64()}/${appID}/`,
-			form: {
-				count: 10,
-				sessionid: this.getSessionID()
-			},
-			source: 'steamcommunity'
-		});
+	this.httpRequestPost({
+		"uri": `https://steamcommunity.com/comment/Recommendation/unsubscribe/${userID.getSteamID64()}/${appID}/`,
+		"form": {
+			"count": 10,
+			"sessionid": this.getSessionID(),
+			"json": 1
+		},
+		"json": true
+	}, function(err, response, body) {
+		if (!callback) {
+			return;
+		}
 
-		resolve();
-	});
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		callback(null);
+	}, "steamcommunity");
 };
 
 /**
@@ -136,25 +162,31 @@ SteamCommunity.prototype.unsubscribeReviewComments = function(userID, appID, cal
  * @return Promise<void> Resolves on success, rejects on failure
  */
 SteamCommunity.prototype.voteReviewHelpful = function(rid, callback) {
-	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
-		let res = await this.httpRequest({
-			method: 'POST',
-			url: `https://steamcommunity.com/userreviews/rate/${rid}`,
-			form: {
-				rateup: 'true',
-				sessionid: this.getSessionID()
-			},
-			source: 'steamcommunity',
-			checkCommunityError: true
-		});
-
-		if (res.jsonBody && res.jsonBody.success != SteamCommunity.EResult.OK) {
-			reject(Helpers.eresultError(res.jsonBody.success));
+	this.httpRequestPost({
+		"uri": `https://steamcommunity.com/userreviews/rate/${rid}`,
+		"form": {
+			"rateup": 'true',
+			"sessionid": this.getSessionID(),
+			"json": 1
+		},
+		"json": true
+	}, function(err, response, body) {
+		if (!callback) {
 			return;
 		}
 
-		resolve();
-	});
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		if (body.success && body.success != SteamCommunity.EResult.OK) {
+			callback(Helpers.eresultError(body.success));
+			return;
+		}
+
+		callback(null);
+	}, "steamcommunity");
 };
 
 /**
@@ -164,25 +196,31 @@ SteamCommunity.prototype.voteReviewHelpful = function(rid, callback) {
  * @return Promise<void> Resolves on success, rejects on failure
  */
 SteamCommunity.prototype.voteReviewUnhelpful = function(rid, callback) {
-	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
-		let res = await this.httpRequest({
-			method: 'POST',
-			url: `https://steamcommunity.com/userreviews/rate/${rid}`,
-			form: {
-				rateup: 'false',
-				sessionid: this.getSessionID()
-			},
-			source: 'steamcommunity',
-			checkCommunityError: true
-		});
-
-		if (res.jsonBody && res.jsonBody.success != SteamCommunity.EResult.OK) {
-			reject(Helpers.eresultError(res.jsonBody.success));
+	this.httpRequestPost({
+		"uri": `https://steamcommunity.com/userreviews/rate/${rid}`,
+		"form": {
+			"rateup": 'false',
+			"sessionid": this.getSessionID(),
+			"json": 1
+		},
+		"json": true
+	}, function(err, response, body) {
+		if (!callback) {
 			return;
 		}
 
-		resolve();
-	});
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		if (body.success && body.success != SteamCommunity.EResult.OK) {
+			callback(Helpers.eresultError(body.success));
+			return;
+		}
+
+		callback(null);
+	}, "steamcommunity");
 };
 
 /**
@@ -192,26 +230,32 @@ SteamCommunity.prototype.voteReviewUnhelpful = function(rid, callback) {
  * @return Promise<void> Resolves on success, rejects on failure
  */
 SteamCommunity.prototype.voteReviewFunny = function(rid, callback) {
-	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
-		let res = await this.httpRequest({
-			method: 'POST',
-			url: `https://steamcommunity.com/userreviews/votetag/${rid}`,
-			form: {
-				tagid: '1',
-				rateup: 'true',
-				sessionid: this.getSessionID()
-			},
-			source: 'steamcommunity',
-			checkCommunityError: true
-		});
-
-		if (res.jsonBody && res.jsonBody.success != SteamCommunity.EResult.OK) {
-			reject(Helpers.eresultError(res.jsonBody.success));
+	this.httpRequestPost({
+		"uri": `https://steamcommunity.com/userreviews/votetag/${rid}`,
+		"form": {
+			"tagid": '1',
+			"rateup": 'true',
+			"sessionid": this.getSessionID(),
+			"json": 1
+		},
+		"json": true
+	}, function(err, response, body) {
+		if (!callback) {
 			return;
 		}
 
-		resolve();
-	});
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		if (body.success && body.success != SteamCommunity.EResult.OK) {
+			callback(Helpers.eresultError(body.success));
+			return;
+		}
+
+		callback(null);
+	}, "steamcommunity");
 };
 
 /**
@@ -221,24 +265,30 @@ SteamCommunity.prototype.voteReviewFunny = function(rid, callback) {
  * @return Promise<void> Resolves on success, rejects on failure
  */
 SteamCommunity.prototype.voteReviewRemoveFunny = function(rid, callback) {
-	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
-		let res = await this.httpRequest({
-			method: 'POST',
-			url: `https://steamcommunity.com/userreviews/votetag/${rid}`,
-			form: {
-				tagid: '1',
-				rateup: 'false',
-				sessionid: this.getSessionID()
-			},
-			source: 'steamcommunity',
-			checkCommunityError: true
-		});
-
-		if (res.jsonBody && res.jsonBody.success != SteamCommunity.EResult.OK) {
-			reject(Helpers.eresultError(res.jsonBody.success));
+	this.httpRequestPost({
+		"uri": `https://steamcommunity.com/userreviews/votetag/${rid}`,
+		"form": {
+			"tagid": '1',
+			"rateup": 'false',
+			"sessionid": this.getSessionID(),
+			"json": 1
+		},
+		"json": true
+	}, function(err, response, body) {
+		if (!callback) {
 			return;
 		}
 
-		resolve();
-	});
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		if (body.success && body.success != SteamCommunity.EResult.OK) {
+			callback(Helpers.eresultError(body.success));
+			return;
+		}
+
+		callback(null);
+	}, "steamcommunity");
 };

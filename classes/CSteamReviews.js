@@ -2,7 +2,7 @@ const Cheerio = require('cheerio');
 const SteamID = require('steamid');
 const StdLib = require('@doctormckay/stdlib');
 
-const SteamCommunity  = require('../index.js');
+const SteamCommunity = require('../index.js');
 const Helpers = require('../components/helpers.js');
 
 
@@ -31,7 +31,6 @@ const Helpers = require('../components/helpers.js');
  * @param {string | SteamID} userID - SteamID object or steamID64 of the review author
  * @param {string} appID - AppID of the associated game
  * @param {function(Error, CSteamReview)} [callback] - First argument is null/Error, second is object containing all available information
- * @returns {Promise.<CSteamReview>} Resolves with CSteamReview object
  */
 SteamCommunity.prototype.getSteamReview = function(userID, appID, callback) {
 	if (typeof userID !== 'string' && !Helpers.isSteamID(userID)) {
@@ -68,19 +67,21 @@ SteamCommunity.prototype.getSteamReview = function(userID, appID, callback) {
 
 
 	// Get DOM of review
-	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
-		let result = await this.httpRequest({
-			method: 'GET',
-			url: `https://steamcommunity.com/profiles/${userID.getSteamID64()}/recommended/${appID}?l=en`,
-			source: 'steamcommunity',
-			followRedirect: true // This setting is important: Steam redirects /profiles/ links to /id/ if user has a vanity set
-		});
-
+	this.httpRequest({
+		method: 'GET',
+		url: `https://steamcommunity.com/profiles/${userID.getSteamID64()}/recommended/${appID}?l=en`,
+		source: 'steamcommunity',
+		followRedirect: true // This setting is important: Steam redirects /profiles/ links to /id/ if user has a vanity set
+	}, (err, result, body) => {
+		if (err) {
+			callback(err);
+			return;
+		}
 
 		try {
 
 			// Load output into cheerio to make parsing easier
-			let $ = Cheerio.load(result.textBody);
+			let $ = Cheerio.load(body);
 
 
 			// Find reviewID which is needed for upvoting, downvoting, etc.
@@ -157,11 +158,12 @@ SteamCommunity.prototype.getSteamReview = function(userID, appID, callback) {
 				review.votesFunny = Number(funnyStr.split(' ')[0]);
 			}
 
-			resolve(new CSteamReview(this, review));
+			callback(null, new CSteamReview(this, review));
 
 		} catch (err) {
-			reject(err);
+			callback(err, null);
 		}
+
 	});
 };
 
