@@ -2,7 +2,6 @@ var SteamCommunity = require('../index.js');
 var CEconItem = require('../classes/CEconItem.js');
 var Helpers = require('./helpers.js');
 var SteamID = require('steamid');
-var request = require('request');
 var Cheerio = require('cheerio');
 var Async = require('async');
 
@@ -143,7 +142,7 @@ SteamCommunity.prototype.getInventoryHistory = function(options, callback) {
 		}
 
 		if (options.resolveVanityURLs) {
-			Async.map(vanityURLs, Helpers.resolveVanityURL, function(err, results) {
+			Async.map(vanityURLs, this.resolveVanityURL, function(err, results) {
 				if (err) {
 					callback(err);
 					return;
