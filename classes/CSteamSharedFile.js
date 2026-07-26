@@ -136,7 +136,7 @@ SteamCommunity.prototype.getSteamSharedFile = function(sharedFileId, callback) {
 			// Find owner profile link, convert to steamID64 using SteamIdResolver lib and create a SteamID object
 			let ownerHref = $(".friendBlockLinkOverlay").attr()["href"];
 
-			Helpers.resolveVanityURL(ownerHref, (err, data) => { // This request takes <1 sec
+			this.resolveVanityURL(ownerHref, (err, data) => { // This request takes <1 sec
 				if (err) {
 					callback(err);
 					return;
