@@ -57,29 +57,111 @@ SteamCommunity.prototype.httpRequest = function(uri, options, callback, source) 
 			return;
 		}
 
-		self.request(options, function (err, response, body) {
-			var hasCallback = !!callback;
-			var httpError = options.checkHttpError !== false && self._checkHttpError(err, response, callback, body);
-			var communityError = !options.json && options.checkCommunityError !== false && self._checkCommunityError(body, httpError ? function () {} : callback); // don't fire the callback if hasHttpError did it already
-			var tradeError = !options.json && options.checkTradeError !== false && self._checkTradeError(body, httpError || communityError ? function () {} : callback); // don't fire the callback if either of the previous already did
-			var jsonError = options.json && options.checkJsonError !== false && !body ? new Error("Malformed JSON response") : null;
+		self.request(options.url, convertOptions(options)).then(function (response) {
+			handleResponse(null, response, response.body);
+		}, function (err) {
+			handleResponse(err, undefined, undefined);
+		});
+	}
 
-			self.emit('postHttpRequest', requestID, source, options, httpError || communityError || tradeError || jsonError || null, response, body, {
-				"hasCallback": hasCallback,
-				"httpError": httpError,
-				"communityError": communityError,
-				"tradeError": tradeError,
-				"jsonError": jsonError
-			});
+	function handleResponse(err, response, body) {
+		if (body instanceof Uint8Array && !Buffer.isBuffer(body)) {
+			body = Buffer.from(body);
+		}
 
-			if (hasCallback && !(httpError || communityError || tradeError)) {
-				if (jsonError) {
-					callback.call(self, jsonError, response);
-				} else {
-					callback.apply(self, arguments);
+		if (response && response.body instanceof Uint8Array && !Buffer.isBuffer(response.body)) {
+			response.body = Buffer.from(response.body);
+		}
+
+		if (options.json && !err && typeof body == 'string' && body.length > 0) {
+			try {
+				body = JSON.parse(body);
+			} catch (ex) {
+				// Ignore; body will remain as a raw string
+			}
+		}
+
+		var hasCallback = !!callback;
+		var httpError = options.checkHttpError !== false && self._checkHttpError(err, response, callback, body);
+		var communityError = !options.json && options.checkCommunityError !== false && self._checkCommunityError(body, httpError ? function () {} : callback); // don't fire the callback if hasHttpError did it already
+		var tradeError = !options.json && options.checkTradeError !== false && self._checkTradeError(body, httpError || communityError ? function () {} : callback); // don't fire the callback if either of the previous already did
+		var jsonError = options.json && options.checkJsonError !== false && !body ? new Error("Malformed JSON response") : null;
+
+		self.emit('postHttpRequest', requestID, source, options, httpError || communityError || tradeError || jsonError || null, response, body, {
+			"hasCallback": hasCallback,
+			"httpError": httpError,
+			"communityError": communityError,
+			"tradeError": tradeError,
+			"jsonError": jsonError
+		});
+
+		if (hasCallback && !(httpError || communityError || tradeError)) {
+			if (jsonError) {
+				callback.call(self, jsonError, response);
+			} else {
+				callback.call(self, null, response, body);
+			}
+		}
+	}
+
+	function convertOptions(options) {
+		var gotOptions = {};
+
+		if (options.qs) {
+			var searchParams = {};
+			for (var key of Object.keys(options.qs)) {
+				if (options.qs[key] !== undefined && options.qs[key] !== null) {
+					searchParams[key] = options.qs[key];
 				}
 			}
+			gotOptions.searchParams = searchParams;
+		}
+
+		if (options.followRedirect !== undefined) {
+			gotOptions.followRedirect = options.followRedirect;
+		}
+
+		if (options.followAllRedirects) {
+			gotOptions.followRedirect = true;
+			gotOptions.methodRewriting = false;
+		}
+
+		if (options.encoding !== undefined) {
+			if (options.encoding === null) {
+				gotOptions.responseType = 'buffer';
+			} else {
+				gotOptions.responseType = 'text';
+				gotOptions.encoding = options.encoding;
+			}
+		}
+
+		if (options.json && typeof options.json != 'boolean' && typeof options.json != 'number') {
+			gotOptions.json = options.json;
+		}
+
+		if (options.form) {
+			gotOptions.form = options.form;
+		}
+
+		if (options.formData) {
+			var formData = new FormData();
+			for (var key of Object.keys(options.formData)) {
+				formData.append(key, options.formData[key]);
+			}
+			gotOptions.body = formData;
+		}
+
+		if (options.body) {
+			gotOptions.body = options.body;
+		}
+
+		['method', 'headers', 'timeout', 'localAddress'].forEach(function (prop) {
+			if (options[prop]) {
+				gotOptions[prop] = options[prop];
+			}
 		});
+
+		return gotOptions;
 	}
 };
 

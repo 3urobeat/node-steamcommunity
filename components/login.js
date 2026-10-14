@@ -32,8 +32,8 @@ SteamCommunity.prototype._modernLogin = function(logOnDetails) {
 			return reject(new Error(`Node.js version is too old! Need >=12.22.0 or later, got ${process.versions.node}.`));
 		}
 
-		if (this._options.request) {
-			return reject(new Error('SteamCommunity.login() is incompatible with node-steamcommunity v3\'s usage of \'request\'. If you need to specify a custom \'request\' instance (e.g. when using a proxy), use https://www.npmjs.com/package/steam-session directly to log onto Steam.'));
+		if (this._options.request || this._options.got) {
+			return reject(new Error('SteamCommunity.login() is incompatible with passing a custom \'request\' instance. If you need to specify a custom HTTP client (e.g. when using a proxy), use https://www.npmjs.com/package/steam-session directly to log onto Steam.'));
 		}
 
 		// Import this here so we don't cause problems on old Node versions if this code path isn't taken.
