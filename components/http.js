@@ -1,6 +1,7 @@
 var URL = require('url');
 
 var SteamCommunity = require('../index.js');
+var xml2js = require('xml2js');
 
 SteamCommunity.prototype.httpRequest = function(uri, options, callback, source) {
 	if (typeof uri === 'object') {
