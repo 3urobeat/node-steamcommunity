@@ -1,5 +1,6 @@
 const {chrome} = require('@doctormckay/user-agents');
-const Request = require('request');
+const Got = require('got').default;
+const {CookieJar, Cookie} = require('tough-cookie');
 const SteamID = require('steamid');
 
 const Helpers = require('./components/helpers.js');
@@ -18,17 +19,23 @@ SteamCommunity.EFriendRelationship = require('./resources/EFriendRelationship.js
 function SteamCommunity(options) {
 	options = options || {};
 
-	this._jar = Request.jar();
+	this._jar = options.jar || options.cookieJar || new CookieJar();
 	this._captchaGid = -1;
 	this._httpRequestID = 0;
 	this.chatState = SteamCommunity.ChatState.Offline;
 
 	var defaults = {
-		"jar": this._jar,
-		"timeout": options.timeout || 50000,
-		"gzip": true,
+		"cookieJar": this._jar,
+		"timeout": {
+			"request": options.timeout || 50000
+		},
+		"decompress": true,
 		"headers": {
 			"User-Agent": options.userAgent || chrome()
+		},
+		"throwHttpErrors": false,
+		"retry": {
+			"limit": 0
 		}
 	};
 
@@ -43,14 +50,13 @@ function SteamCommunity(options) {
 		defaults.localAddress = options.localAddress;
 	}
 
-	this.request = options.request || Request.defaults({"forever": true}); // "forever" indicates that we want a keep-alive agent
-	this.request = this.request.defaults(defaults);
+	this.request = (options.got || options.request || Got).extend(defaults);
 
 	// English
-	this._setCookie(Request.cookie('Steam_Language=english'));
+	this._setCookie(Cookie.parse('Steam_Language=english'));
 
 	// UTC
-	this._setCookie(Request.cookie('timezoneOffset=0,0'));
+	this._setCookie(Cookie.parse('timezoneOffset=0,0'));
 }
 
 SteamCommunity.prototype.login = function(details, callback) {
@@ -155,11 +161,11 @@ SteamCommunity.prototype._setCookie = function(cookie, secure) {
 	cookie.secure = !!secure;
 
 	if (cookie.domain) {
-		this._jar.setCookie(cookie.clone(), protocol + '://' + cookie.domain);
+		this._jar.setCookieSync(cookie.clone(), protocol + '://' + cookie.domain);
 	} else {
-		this._jar.setCookie(cookie.clone(), protocol + "://steamcommunity.com");
-		this._jar.setCookie(cookie.clone(), protocol + "://store.steampowered.com");
-		this._jar.setCookie(cookie.clone(), protocol + "://help.steampowered.com");
+		this._jar.setCookieSync(cookie.clone(), protocol + "://steamcommunity.com");
+		this._jar.setCookieSync(cookie.clone(), protocol + "://store.steampowered.com");
+		this._jar.setCookieSync(cookie.clone(), protocol + "://help.steampowered.com");
 	}
 };
 
@@ -170,7 +176,7 @@ SteamCommunity.prototype.setCookies = function(cookies) {
 			this.steamID = new SteamID(cookie.match(/steamLogin(Secure)?=(\d+)/)[2]);
 		}
 
-		this._setCookie(Request.cookie(cookie), !!(cookieName.match(/^steamMachineAuth/) || cookieName.match(/Secure$/)));
+		this._setCookie(Cookie.parse(cookie), !!(cookieName.match(/^steamMachineAuth/) || cookieName.match(/Secure$/)));
 	});
 
 	// The account we're logged in as might have changed, so verify that our mobile access token (if any) is still valid
@@ -179,7 +185,7 @@ SteamCommunity.prototype.setCookies = function(cookies) {
 };
 
 SteamCommunity.prototype.getSessionID = function(host = "http://steamcommunity.com") {
-	var cookies = this._jar.getCookieString(host).split(';');
+	var cookies = this._jar.getCookieStringSync(host).split(';');
 	for(var i = 0; i < cookies.length; i++) {
 		var match = cookies[i].trim().match(/([^=]+)=(.+)/);
 		if(match[1] == 'sessionid') {
@@ -188,7 +194,7 @@ SteamCommunity.prototype.getSessionID = function(host = "http://steamcommunity.c
 	}
 
 	var sessionID = generateSessionID();
-	this._setCookie(Request.cookie('sessionid=' + sessionID));
+	this._setCookie(Cookie.parse('sessionid=' + sessionID));
 	return sessionID;
 };
 

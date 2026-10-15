@@ -540,7 +540,8 @@ SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, t
 			}
 
 			if (body.more) {
-				var match = response.request.uri.href.match(/\/(profiles|id)\/([^\/]+)\//);
+				var href = (response && (response.url || (response.requestUrl && response.requestUrl.href))) || '';
+				var match = href.match(/\/(profiles|id)\/([^\/]+)\//);
 				if(match) {
 					endpoint = "/" + match[1] + "/" + match[2];
 				}

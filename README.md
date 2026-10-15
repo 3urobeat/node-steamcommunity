@@ -12,8 +12,19 @@ requests and bug reports. Instead, post in the [dedicated forum](https://dev.doc
 Such issues may be ignored!**
 
 # Documentation
+## Fork
+This fork uses `got` instead of the deprecated `requests` library.  
+Setting up a SteamCommunity instance using a proxy therefore differs:  
+```js
+const SteamCommunity = require("steamcommunity");
+const got            = require(require.resolve("got", { paths: [require.resolve("steamcommunity")] })).default; // Use got bundled with steamcommunity
 
-Documentation is available on the [GitHub wiki](https://github.com/DoctorMcKay/node-steamcommunity/wiki).
+const communityProxyAgent = new HttpsProxyAgent("http://0.0.0.0:1234");
+const community           = new SteamCommunity({ got: got.extend({ agent: { https: communityProxyAgent, http: communityProxyAgent }, decompress: true }) });
+```
+
+## Base
+Documentation of the base repository is available on the [GitHub wiki](https://github.com/DoctorMcKay/node-steamcommunity/wiki).
 
 # Support
 
