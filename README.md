@@ -1,7 +1,7 @@
 # Steam Community for Node.js (3urobeat's Fork)
-[![npm version](https://img.shields.io/npm/v/steamcommunity.svg)](https://npmjs.com/package/@3urobeat/steamcommunity)
-[![npm downloads](https://img.shields.io/npm/dm/steamcommunity.svg)](https://npmjs.com/package/@3urobeat/steamcommunity)
-[![license](https://img.shields.io/npm/l/steamcommunity.svg)](https://github.com/3urobeat/node-steamcommunity/blob/master/LICENSE)
+[![npm version](https://img.shields.io/npm/v/@3urobeat/steamcommunity.svg)](https://npmjs.com/package/@3urobeat/steamcommunity)
+[![npm downloads](https://img.shields.io/npm/dm/@3urobeat/steamcommunity.svg)](https://npmjs.com/package/@3urobeat/steamcommunity)
+[![license](https://img.shields.io/npm/l/@3urobeat/steamcommunity.svg)](https://github.com/3urobeat/node-steamcommunity/blob/master/LICENSE)
 [![DoctorMcKay's paypal](https://img.shields.io/badge/doctormckay's%20paypal-donate-yellow.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=N36YVAT42CZ4G&item_name=node%2dsteamcommunity&currency_code=USD)
 
 This module provides an easy interface for the Steam Community website. This module can be used to simply login to
