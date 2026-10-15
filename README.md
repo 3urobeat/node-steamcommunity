@@ -26,11 +26,12 @@ This fork is *mostly* a drop-in replacement, except for anything listed in the c
 This fork uses `got` instead of the deprecated `requests` library.  
 Setting up a SteamCommunity instance using a proxy therefore differs:  
 ```js
-const SteamCommunity = require("@3urobeat/steamcommunity");
-const got            = require(require.resolve("got", { paths: [require.resolve("steamcommunity")] })).default; // Use got bundled with steamcommunity
+const SteamCommunity      = require("@3urobeat/steamcommunity");
+const got                 = require(require.resolve("got", { paths: [require.resolve("steamcommunity")] })).default; // Use got bundled with steamcommunity
+const { HttpsProxyAgent } = require("https-proxy-agent");
 
 const communityProxyAgent = new HttpsProxyAgent("http://0.0.0.0:1234");
-const community           = new SteamCommunity({ got: got.extend({ agent: { https: communityProxyAgent, http: communityProxyAgent }, decompress: true }) });
+const community           = new SteamCommunity({ got: got.extend({ agent: { https: communityProxyAgent, http: communityProxyAgent } }) });
 ```
 
 ## Base
