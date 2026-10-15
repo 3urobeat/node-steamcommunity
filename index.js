@@ -22,6 +22,7 @@ function SteamCommunity(options) {
 	this._jar = options.jar || options.cookieJar || new CookieJar();
 	this._captchaGid = -1;
 	this._httpRequestID = 0;
+	this._lastUrlByHost = {};
 	this.chatState = SteamCommunity.ChatState.Offline;
 
 	var defaults = {
@@ -31,7 +32,11 @@ function SteamCommunity(options) {
 		},
 		"decompress": true,
 		"headers": {
-			"User-Agent": options.userAgent || chrome()
+			"User-Agent": options.userAgent || chrome(),
+			"Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+			"Accept-Language": "en-US,en;q=0.9",
+			"Upgrade-Insecure-Requests": "1",
+			"Sec-GPC": "1"
 		},
 		"throwHttpErrors": false,
 		"retry": {

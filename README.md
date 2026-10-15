@@ -14,7 +14,7 @@ This fork extends DoctorMcKay's v3 branch with unmerged fixes, features and upda
 - Fix scraping sharedfile type failing when incomplete breadcrumb was returned: [DoctorMcKay/node-steamcommunity #316](https://github.com/DoctorMcKay/node-steamcommunity/pull/316)
 - Add discussions support: [DoctorMcKay/node-steamcommunity #319](https://github.com/DoctorMcKay/node-steamcommunity/pull/319)
 - Add reviews support: [DoctorMcKay/node-steamcommunity #335](https://github.com/DoctorMcKay/node-steamcommunity/pull/335)
-- Migrate from deprecated `requests` to `got`. Fixes issues documented here: [3urobeat/steam-comment-service-bot #285](https://github.com/3urobeat/steam-comment-service-bot/issues/285)
+- Migrate from deprecated `requests` to `got` and extend headers set. Attempts to fix HTTP 429 ratelimit issues documented here: [3urobeat/steam-comment-service-bot #285](https://github.com/3urobeat/steam-comment-service-bot/issues/285)
 - Update dependencies
 
 This fork is *mostly* a drop-in replacement, except for anything listed in the chapter below.

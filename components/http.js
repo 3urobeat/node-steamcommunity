@@ -3,6 +3,43 @@ var URL = require('url');
 var SteamCommunity = require('../index.js');
 var xml2js = require('xml2js');
 
+SteamCommunity.prototype._setBrowserHeaders = function(options) {
+	options.headers = options.headers || {};
+
+	var parsedUrl = URL.parse(options.url);
+	var host = parsedUrl ? parsedUrl.host : null;
+	var isGet = (options.method || 'GET').toUpperCase() === 'GET';
+
+	// Referer: last URL fetched on the same host (mimics page-to-page navigation)
+	if (host && this._lastUrlByHost && this._lastUrlByHost[host] && !options.headers.referer) {
+		options.headers.referer = this._lastUrlByHost[host];
+	}
+
+	// Sec-Fetch headers
+	if (!options.headers['sec-fetch-dest']) {
+		options.headers['sec-fetch-dest'] = isGet ? 'document' : 'empty';
+	}
+	if (!options.headers['sec-fetch-mode']) {
+		options.headers['sec-fetch-mode'] = isGet ? 'navigate' : 'cors';
+	}
+	if (!options.headers['sec-fetch-site']) {
+		if (host && this._lastUrlByHost && this._lastUrlByHost[host]) {
+			var refererHost = URL.parse(this._lastUrlByHost[host]).host;
+			options.headers['sec-fetch-site'] = (refererHost === host) ? 'same-origin' : 'cross-site';
+		} else {
+			options.headers['sec-fetch-site'] = 'cross-site';
+		}
+	}
+	if (!options.headers['sec-fetch-user'] && isGet) {
+		options.headers['sec-fetch-user'] = '?1';
+	}
+
+	// Priority header for navigation requests
+	if (!options.headers.priority && isGet) {
+		options.headers.priority = 'u=0, i';
+	}
+};
+
 SteamCommunity.prototype.httpRequest = function(uri, options, callback, source) {
 	if (typeof uri === 'object') {
 		source = callback;
@@ -58,6 +95,8 @@ SteamCommunity.prototype.httpRequest = function(uri, options, callback, source) 
 			return;
 		}
 
+		self._setBrowserHeaders(options);
+
 		self.request(options.url, convertOptions(options)).then(function (response) {
 			handleResponse(null, response, response.body);
 		}, function (err) {
@@ -66,6 +105,15 @@ SteamCommunity.prototype.httpRequest = function(uri, options, callback, source) 
 	}
 
 	function handleResponse(err, response, body) {
+		// Remember the last URL fetched per host for use as Referer on subsequent requests
+		if (!err && response && options.url) {
+			var responseUrl = URL.parse(options.url);
+			if (responseUrl && responseUrl.host) {
+				self._lastUrlByHost = self._lastUrlByHost || {};
+				self._lastUrlByHost[responseUrl.host] = options.url;
+			}
+		}
+
 		if (body instanceof Uint8Array && !Buffer.isBuffer(body)) {
 			body = Buffer.from(body);
 		}
