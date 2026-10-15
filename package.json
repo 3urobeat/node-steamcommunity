@@ -1,6 +1,6 @@
 {
 	"name": "@3urobeat/steamcommunity",
-	"version": "3.50.3",
+	"version": "1.0.0+3.50.3",
 	"description": "Provides an interface for logging into and interacting with the Steam Community website",
 	"files": [
 		"/classes",
@@ -32,7 +32,7 @@
 	],
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/3urobeat/node-steamcommunity.git"
+		"url": "git+https://github.com/3urobeat/node-steamcommunity.git"
 	},
 	"dependencies": {
 		"@doctormckay/user-agents": "^1.1.0",
