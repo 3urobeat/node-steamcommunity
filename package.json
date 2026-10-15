@@ -1,5 +1,5 @@
 {
-	"name": "steamcommunity",
+	"name": "@3urobeat/steamcommunity",
 	"version": "3.50.3",
 	"description": "Provides an interface for logging into and interacting with the Steam Community website",
 	"files": [
@@ -13,19 +13,26 @@
 		"steam",
 		"steam community"
 	],
-	"homepage": "https://github.com/DoctorMcKay/node-steamcommunity",
+	"homepage": "https://github.com/3urobeat/node-steamcommunity",
 	"bugs": {
-		"url": "https://github.com/DoctorMcKay/node-steamcommunity/issues"
+		"url": "https://github.com/3urobeat/node-steamcommunity/issues"
 	},
 	"license": "MIT",
-	"author": {
-		"name": "Alex Corn",
-		"email": "mckay@doctormckay.com",
-		"url": "https://www.doctormckay.com"
-	},
+	"contributors": [
+		{
+			"name": "Alex Corn",
+			"email": "mckay@doctormckay.com",
+			"url": "https://www.doctormckay.com"
+		},
+		{
+			"name": "3urobeat",
+			"email": "git@3urobeat.com",
+			"url": "https://3urobeat.com"
+		}
+	],
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/DoctorMcKay/node-steamcommunity.git"
+		"url": "https://github.com/3urobeat/node-steamcommunity.git"
 	},
 	"dependencies": {
 		"@doctormckay/user-agents": "^1.1.0",
