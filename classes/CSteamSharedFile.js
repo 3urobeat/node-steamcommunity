@@ -59,15 +59,25 @@ SteamCommunity.prototype.getSteamSharedFile = function(sharedFileId, callback) {
 
 			// Dynamically map stats_table descriptions to values. This holds Unique Visitors and Current Favorites
 			let statsTableObj = {};
-			let statsTable    = $(".stats_table").children();
+			let statsTable    = $(".stats_table tr");
 
-			Object.keys(statsTable).forEach((e) => {
-				if (isNaN(e)) {
-					return; // Ignore invalid entries
+			statsTable.each((i, e) => {
+				let cells = $(e).children("td");
+
+				if (cells.length < 2) {
+					cells = $(e).find("td");
 				}
 
-				// Value description is at index 3, value data at index 1
-				statsTableObj[statsTable[e].children[3].children[0].data] = statsTable[e].children[1].children[0].data.replace(/,/g, ""); // Remove commas from 1k+ values
+				if (cells.length < 2) {
+					return;
+				}
+
+				let value = $(cells[0]).text().trim();
+				let description = $(cells[1]).text().trim();
+
+				if (description) {
+					statsTableObj[description] = value.replace(/,/g, "");
+				}
 			});
 
 
