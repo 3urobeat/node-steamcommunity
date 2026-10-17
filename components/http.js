@@ -97,6 +97,16 @@ SteamCommunity.prototype.httpRequest = function(uri, options, callback, source) 
 
 		self._setBrowserHeaders(options);
 
+		// Emit a debug event with the request details (headers, cookies, etc.) before the request is made
+		self.emit('debug', JSON.stringify({
+			"requestID": requestID,
+			"source": source,
+			"url": options.url,
+			"method": options.method || 'GET',
+			"headers": options.headers,
+			"cookies": self._jar.getCookieStringSync(options.url)
+		}));
+
 		self.request(options.url, convertOptions(options)).then(function (response) {
 			handleResponse(null, response, response.body);
 		}, function (err) {
