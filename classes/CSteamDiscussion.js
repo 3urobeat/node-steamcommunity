@@ -130,7 +130,7 @@ SteamCommunity.prototype.getSteamDiscussion = function(url, callback) {
 			if (discussion.type != EDiscussionType.Eventcomments) {
 				let authorLink = $('.forum_op_author').attr('href');
 
-				Helpers.resolveVanityURL(authorLink, (err, data) => { // This request takes <1 sec
+				this.resolveVanityURL(authorLink, (err, data) => { // This request takes <1 sec
 					if (err) {
 						callback(err);
 						return;
